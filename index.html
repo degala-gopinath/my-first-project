@@ -1,0 +1,336 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Website</title>
+
+<style>
+/* * { box-sizing: border-box; } */
+
+body {
+    margin: 1;
+    font-family: Arial, sans-serif;
+    background: #eef2ff;
+    color: #1e293b;
+}
+
+header {
+    background: #1e3a8a;
+    color: white;
+    padding: 20px 8%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+header h2 { margin: 0; }
+
+nav button {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 15px;
+}
+
+.page {
+    display: none;
+    min-height: calc(100vh - 70px);
+    padding: 20px;
+    justify-content: center;
+    align-items: center;
+}
+
+.page.active { display: flex; }
+
+.home-content { text-align: center; }
+
+.home-content h1 {
+    font-size: 40px;
+    color: #1e40af;
+}
+
+.buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.btn {
+    background: #2563eb;
+    color: white;
+    padding: 13px 30px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn:hover { background: #1d4ed8; }
+
+.form-box {
+    background: white;
+    width: 100%;
+    max-width: 400px;
+    padding: 35px;
+    border-radius: 14px;
+    text-align: center;
+    box-shadow: 0 8px 25px #00000018;
+}
+
+.form-box h2 { color: #1e40af; }
+
+input {
+    width: 100%;
+    padding: 13px;
+    margin: 10px 0;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+}
+
+.form-box .btn {
+    width: 100%;
+    margin-top: 15px;
+}
+
+.link {
+    color: #2563eb;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.message { min-height: 20px; }
+
+@media (max-width: 500px) {
+    header { padding: 18px; }
+    nav button { margin-left: 5px; }
+    .home-content h1 { font-size: 29px; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h2>My Website</h2>
+    <nav>
+        <button onclick="showPage('home')">Home</button>
+        <button onclick="showPage('login')">Login</button>
+        <button onclick="showPage('signup')">Signup</button>
+    </nav>
+</header>
+
+<!-- HOME -->
+<section id="home" class="page active">
+    <div class="home-content">
+        <h1>Welcome to My Website</h1>
+        <p>Register or login to continue</p>
+        <div class="buttons">
+            <button class="btn" onclick="showPage('login')">
+                Login
+            </button>
+            <button class="btn" onclick="showPage('signup')">
+                Signup
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- SIGNUP -->
+<section id="signup" class="page">
+    <div class="form-box">
+        <h2>Create Account</h2>
+
+        <form id="signupForm">
+            <input id="signupName" type="text"
+                   placeholder="Full Name" required>
+
+            <input id="signupEmail" type="email"
+                   placeholder="Email Address" required>
+
+            <input id="signupPassword" type="password"
+                   placeholder="Password (demo only)"
+                   minlength="8" required>
+
+            <input id="confirmPassword" type="password"
+                   placeholder="Confirm Password" required>
+
+            <button class="btn" type="submit">Signup</button>
+        </form>
+
+        <p id="signupMessage" class="message"></p>
+
+        <p>Already registered?
+            <a class="link" onclick="showPage('login')">Login</a>
+        </p>
+    </div>
+</section>
+
+<!-- LOGIN -->
+<section id="login" class="page">
+    <div class="form-box">
+        <h2>Login</h2>
+
+        <form id="loginForm">
+            <input id="loginEmail" type="email"
+                   placeholder="Email Address" required>
+
+            <input id="loginPassword" type="password"
+                   placeholder="Password (demo only)" required>
+
+            <button class="btn" type="submit">Login</button>
+        </form>
+
+        <p id="loginMessage" class="message"></p>
+
+        <p>Don't have an account?
+            <a class="link" onclick="showPage('signup')">Signup</a>
+        </p>
+    </div>
+</section>
+
+<!-- DASHBOARD -->
+<section id="dashboard" class="page">
+    <div class="form-box">
+        <h2>Welcome!</h2>
+        <p id="profileName"></p>
+        <p id="profileEmail"></p>
+        <button class="btn" onclick="showPage('home')">
+            Back to Home
+        </button>
+    </div>
+</section>
+
+<script>
+let db;
+
+// OPEN BROWSER DATABASE
+const request = indexedDB.open("MyWebsiteDB", 1);
+
+request.onupgradeneeded = function(event) {
+    const database = event.target.result;
+
+    if (!database.objectStoreNames.contains("users")) {
+        database.createObjectStore("users", {
+            keyPath: "email"
+        });
+    }
+};
+
+request.onsuccess = function(event) {
+    db = event.target.result;
+};
+
+request.onerror = function() {
+    alert("Unable to open browser database");
+};
+
+// SWITCH PAGES
+function showPage(id) {
+    document.querySelectorAll(".page").forEach(page => {
+        page.classList.remove("active");
+    });
+
+    document.getElementById(id).classList.add("active");
+}
+
+// SAVE SIGNUP DETAILS
+document.getElementById("signupForm").addEventListener(
+    "submit", function(event) {
+        event.preventDefault();
+
+        const name = document.getElementById("signupName").value.trim();
+        const email = document.getElementById("signupEmail").value.trim().toLowerCase();
+        const password = document.getElementById("signupPassword").value;
+        const confirm = document.getElementById("confirmPassword").value;
+        const message = document.getElementById("signupMessage");
+
+        if (password !== confirm) {
+            message.style.color = "red";
+            message.textContent = "Passwords do not match";
+            return;
+        }
+
+        if (!db) {
+            message.textContent = "Database not ready";
+            return;
+        }
+
+        // Password is deliberately NOT stored.
+        const transaction = db.transaction("users", "readwrite");
+        const store = transaction.objectStore("users");
+
+        const check = store.get(email);
+
+        check.onsuccess = function() {
+            if (check.result) {
+                message.style.color = "red";
+                message.textContent = "Email already registered";
+                return;
+            }
+
+            store.add({
+                name: name,
+                email: email,
+                createdAt: new Date().toISOString()
+            });
+        };
+
+        transaction.oncomplete = function() {
+            if (!check.result) {
+                message.style.color = "green";
+                message.textContent = "Details saved successfully!";
+                document.getElementById("signupForm").reset();
+            }
+        };
+
+        transaction.onerror = function() {
+            message.style.color = "red";
+            message.textContent = "Unable to save details";
+        };
+    }
+);
+
+// DEMO LOGIN: LOOK UP EMAIL ONLY
+document.getElementById("loginForm").addEventListener(
+    "submit", function(event) {
+        event.preventDefault();
+
+        const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+        const message = document.getElementById("loginMessage");
+
+        if (!db) {
+            message.textContent = "Database not ready";
+            return;
+        }
+
+        const transaction = db.transaction("users", "readonly");
+        const store = transaction.objectStore("users");
+        const request = store.get(email);
+
+        request.onsuccess = function() {
+            if (request.result) {
+                const user = request.result;
+
+                document.getElementById("profileName").textContent =
+                    "Name: " + user.name;
+
+                document.getElementById("profileEmail").textContent =
+                    "Email: " + user.email;
+
+                showPage("dashboard");
+            } else {
+                message.style.color = "red";
+                message.textContent = "Email not registered";
+            }
+        };
+    }
+);
+</script>
+
+</body>
+</html>
